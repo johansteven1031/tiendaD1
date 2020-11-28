@@ -1,0 +1,63 @@
+﻿@using WebApplication1.Models;
+@using System.Collections.Generic;
+@model OrderDetails
+@{
+    ViewData["Title"] = "Catálogo Productos";
+
+}
+
+
+
+<h1>@ViewData["Title"]</h1>
+
+<div class="card-group">
+    @foreach (var item in ViewBag.Products)
+    {
+        <form asp-action="AddProductToCar">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="card" style="width: 18rem;">
+                @if (string.IsNullOrEmpty(item.Ruta))
+                {
+                    <img src="~/Image/producto-sin-foto.png" class="card-img-top" alt="...">
+                }
+                else
+                {
+                    <img src="~/Image/@item.Ruta" class="card-img-top" alt="...">
+                }
+                <div class="card-body">
+                    <h5 class="card-title">@item.Code</h5>
+                    <p class="card-text">
+                        @item.Description
+                    </p>
+                </div>
+                <div class="card-footer">
+
+
+                    <div class="row">
+                        <div class="col-sm-7">
+                            <h5 class="text-muted">$@item.Cost</h5>
+                        </div>
+                        <div class="col-sm-5">
+                            <input type="hidden" asp-for="ProductId" value="@item.ProductId" />
+                            <input type="number" asp-for="Quantity" class="form-control" value="1" min="1" max="99" />
+                            <span asp-validation-for="Quantity" class="text-danger"></span>
+                        </div>
+                        <div class="col-sm-12">
+                            <button type="submit" value="AddProductToCar" class="btn btn-success">Agregar Al Carro</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    }
+
+
+
+</div>
+
+
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

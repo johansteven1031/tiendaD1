@@ -1,0 +1,174 @@
+﻿@using Microsoft.AspNetCore.Identity
+@inject SignInManager<IdentityUser> SignInManager
+@inject UserManager<IdentityUser> UserManager
+
+
+<div class="modal" tabindex="-1" id="myCardShopping">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Carrito De Compras <span id="TotalOrder"><b>$0</b></span></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <table id="grid" class="table table-responsive">
+                    <thead>
+                        <tr>
+                            <th>
+                                Producto
+                            </th>
+                            <th>
+                                Precio C/U
+                            </th>
+                            <th>
+                                Cantidad
+                            </th>
+                            <th>
+                                Subtotal
+                            </th>
+                            <th>
+
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td> q</td>
+                            <td> </td>
+                            <td> </td>
+                            <td> </td>
+                            <td> </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-danger" data-dismiss="modal">Cerrar</button>
+                <button type="submit" class="btn btn-primary" onclick="finishOrder()">Finalizar Compra</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<ul class="navbar-nav">
+    @if (SignInManager.IsSignedIn(User))
+    {
+        <li class="nav-item">
+            <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage">Hello @User.Identity.Name!</a>
+        </li>
+        <li class="nav-item">
+            <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+                <button type="submit" class="nav-link btn btn-link text-dark">Logout</button>
+            </form>
+        </li>
+        <li class="nav-item">
+            <div class="form-group">
+                <label id="QtyShopping" class="control-label notificacion"  onclick="loadShoppingDetails()">0</label>
+                <i class="fa fa-shopping-bag fa-2x" onclick="loadShoppingDetails()"></i>
+            </div>
+        </li>
+    }
+    else
+    {
+        <li class="nav-item">
+            <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Register">Register</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Login">Login</a>
+        </li>
+    }
+</ul>
+
+<script type="text/javascript">
+
+
+    setInterval(function () { getQtyShopping(); }, 1000);//Cada 10 segundos
+
+    function getQtyShopping() {
+        $.ajax({
+            url: '@Url.Action("getQtyShopping", "OrderDetails")',
+            data: {
+
+            },
+            method: 'POST',
+            success: function (result) {
+                if (result != null) {
+                    $("#QtyShopping").text(result);
+                } else {
+                    $("#QtyShopping").text(0);
+                }
+            },
+            error: function (jqXHR, textStatus, error) {
+            }
+        });
+    }
+
+    function loadShoppingDetails() {
+        $.ajax({
+            url: '@Url.Action("getShoppingDetails", "OrderDetails")',
+            data: {
+            },
+            method: 'POST',
+            success: function (records) {
+                let body = $("#grid tbody");
+                let TotalOrder = 0;
+                body.empty();
+
+                 if (records != null) {
+                     $.each(records,function (index,record) {
+                         TotalOrder += record.subTotal;
+                         body.append("<tr>");
+                         debugger;
+                         body.append("<td>" + record.product.description + "</td>");
+                        body.append("<td>$" + record.cost + "</td>");
+                         body.append("<td>" + record.quantity + "</td>");
+                        body.append("<td>$" + record.subTotal + "</td>");
+                         body.append('<td><a  onclick="deleteDetail(' + record.orderDetailId+')"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></a> </td>');
+                        body.append("</tr>");
+                    })
+                     $("#TotalOrder").text("$"+TotalOrder);
+                    $("#myCardShopping").modal()
+                    //$("#QtyShopping").text(records);
+                }
+            },
+            error: function (jqXHR, textStatus, error) {
+            }
+        });
+    }
+
+    function finishOrder() {
+        $.ajax({
+            url: '@Url.Action("finishShoppingDetails", "OrderDetails")',
+            data: {
+            },
+            method: 'POST',
+            success: function (menssage) {
+                alert(menssage);
+                window.location.reload(); 
+            },
+            error: function (jqXHR, textStatus, error) {
+            }
+        });
+    }
+
+    function deleteDetail(orderDetailId) {
+          $.ajax({
+            url: '@Url.Action("deleteorderDetails", "OrderDetails")',
+              data: {
+                  orderDetailId: orderDetailId
+            },
+            method: 'POST',
+              success: function (menssage) {
+                  loadShoppingDetails();
+                  alert(menssage);
+
+            },
+            error: function (jqXHR, textStatus, error) {
+            }
+        })
+    }
+
+
+</script>
